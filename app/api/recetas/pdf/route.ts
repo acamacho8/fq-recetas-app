@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import PDFDocument from 'pdfkit';
 
+const CATEGORIA_COLORES: Record<string, string> = {
+  Bebidas:      '#3b82f6',
+  Helados:      '#a855f7',
+  Churros:      '#f59e0b',
+  Topping:      '#22c55e',
+  Otras:        '#6b7280',
+  'Sin categoría': '#d1d5db',
+};
+
 const ORDEN_CATEGORIAS = ['Bebidas', 'Helados', 'Churros', 'Topping', 'Otras'];
 
 export async function GET() {
@@ -21,7 +30,6 @@ export async function GET() {
     grupos[cat].push(r);
   }
 
-  // Orden: categorías definidas primero, luego "Otras", luego "Sin categoría"
   const ordenFinal = [
     ...ORDEN_CATEGORIAS.filter(c => grupos[c]),
     ...Object.keys(grupos).filter(c => !ORDEN_CATEGORIAS.includes(c) && c !== 'Sin categoría'),
@@ -30,74 +38,87 @@ export async function GET() {
 
   const doc = new PDFDocument({ margin: 50, size: 'A4' });
   const chunks: Buffer[] = [];
-
   doc.on('data', (chunk: Buffer) => chunks.push(chunk));
 
-  // Portada
-  doc.fontSize(28).font('Helvetica-Bold').fillColor('#e97a20').text('Recetas FQ', { align: 'center' });
-  doc.moveDown(0.4);
-  doc.fontSize(10).font('Helvetica').fillColor('#888888').text(
+  // Encabezado principal
+  doc.fontSize(26).font('Helvetica-Bold').fillColor('#e97a20').text('Recetas FQ', { align: 'center' });
+  doc.moveDown(0.3);
+  doc.fontSize(10).font('Helvetica').fillColor('#999999').text(
     `${recetas.length} receta${recetas.length !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('es-VE')}`,
     { align: 'center' }
   );
-  doc.moveDown(2);
+  doc.moveDown(1.5);
 
   let primeraCategoria = true;
 
   for (const categoria of ordenFinal) {
     const lista = grupos[categoria];
+    const colorCat = CATEGORIA_COLORES[categoria] ?? '#6b7280';
 
-    // Separador entre categorías (no antes de la primera)
-    if (!primeraCategoria) {
-      doc.moveDown(1.5);
-    }
+    if (!primeraCategoria) doc.moveDown(1.5);
     primeraCategoria = false;
 
-    // Encabezado de categoría
-    doc.rect(50, doc.y, 495, 24).fill('#e97a20');
-    doc.fontSize(13).font('Helvetica-Bold').fillColor('#ffffff')
-      .text(categoria.toUpperCase(), 58, doc.y - 19);
-    doc.moveDown(1);
+    // ── Encabezado de sección ──────────────────────────────────────
+    const secY = doc.y;
+    doc.rect(50, secY, 495, 26).fill(colorCat);
+    doc.fontSize(12).font('Helvetica-Bold').fillColor('#ffffff')
+      .text(`  ${categoria.toUpperCase()}  (${lista.length} receta${lista.length !== 1 ? 's' : ''})`,
+        54, secY + 7);
+    doc.moveDown(1.2);
 
-    // Recetas de esta categoría
+    // ── Recetas de esta sección ────────────────────────────────────
     for (let i = 0; i < lista.length; i++) {
       const r = lista[i];
 
       if (i > 0) {
-        doc.moveDown(0.8);
-        doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#eeeeee').lineWidth(0.5).stroke();
-        doc.moveDown(0.8);
+        doc.moveDown(0.6);
+        doc.moveTo(60, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+        doc.moveDown(0.6);
       }
 
-      // Nombre de receta
-      doc.fontSize(14).font('Helvetica-Bold').fillColor('#1a1a1a').text(r.nombre);
+      // Barra lateral de color + nombre de receta
+      const recetaY = doc.y;
+      doc.rect(50, recetaY, 4, 18).fill(colorCat);
+      doc.fontSize(13).font('Helvetica-Bold').fillColor('#111827')
+        .text(r.nombre, 62, recetaY);
+
+      // Etiqueta membrete de categoría (tag naranja/color junto al nombre)
+      const nombreAncho = doc.widthOfString(r.nombre);
+      const tagX = 62 + nombreAncho + 8;
+      const tagW = doc.widthOfString(categoria) + 12;
+      if (tagX + tagW < 530) {
+        doc.rect(tagX, recetaY + 1, tagW, 14).fill(colorCat);
+        doc.fontSize(8).font('Helvetica-Bold').fillColor('#ffffff')
+          .text(categoria, tagX + 6, recetaY + 3.5);
+      }
 
       if (r.porciones) {
-        doc.fontSize(10).font('Helvetica').fillColor('#888888').text(`${r.porciones} porciones`);
+        doc.fontSize(9).font('Helvetica').fillColor('#9ca3af')
+          .text(`${r.porciones} porciones`, 62, doc.y + 2);
       }
 
-      doc.moveDown(0.4);
+      doc.moveDown(0.5);
 
       // Ingredientes
       if (r.ingredientes?.length > 0) {
-        doc.fontSize(11).font('Helvetica-Bold').fillColor('#555555').text('Ingredientes');
-        doc.moveDown(0.2);
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#374151').text('Ingredientes', 62);
+        doc.moveDown(0.15);
         for (const ing of r.ingredientes) {
           const detalle = [ing.cantidad, ing.unidad].filter(Boolean).join(' ');
           const linea = detalle ? `${ing.nombre}  —  ${detalle}` : ing.nombre;
-          doc.fontSize(10).font('Helvetica').fillColor('#333333').text(`• ${linea}`, { indent: 12 });
+          doc.fontSize(9).font('Helvetica').fillColor('#4b5563').text(`• ${linea}`, { indent: 72 });
         }
-        doc.moveDown(0.4);
+        doc.moveDown(0.3);
       }
 
       // Pasos
       if (r.pasos?.length > 0) {
-        doc.fontSize(11).font('Helvetica-Bold').fillColor('#555555').text('Preparación');
-        doc.moveDown(0.2);
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#374151').text('Preparación', 62);
+        doc.moveDown(0.15);
         for (const paso of r.pasos) {
-          doc.fontSize(10).font('Helvetica').fillColor('#333333')
-            .text(`${paso.orden}.  ${paso.descripcion}`, { indent: 12 });
-          doc.moveDown(0.15);
+          doc.fontSize(9).font('Helvetica').fillColor('#4b5563')
+            .text(`${paso.orden}.  ${paso.descripcion}`, { indent: 72 });
+          doc.moveDown(0.1);
         }
       }
     }
