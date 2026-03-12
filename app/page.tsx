@@ -34,6 +34,13 @@ export default function HomePage() {
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
         />
+        <a
+          href="/api/recetas/pdf"
+          download="recetas.pdf"
+          className="shrink-0 bg-gray-700 hover:bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
+        >
+          Descargar PDF
+        </a>
       </div>
 
       {cargando && (

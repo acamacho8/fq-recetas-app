@@ -1,11 +1,16 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { sql } from '@/lib/db';
+import { auth } from '@/auth';
+
+const ADMIN_EMAIL = 'acamacho@fullqueso.com';
 
 interface Params { id: string }
 
 export default async function RecetaDetallePage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
+  const session = await auth();
+  const esAdmin = session?.user?.email === ADMIN_EMAIL;
 
   const [receta] = await sql`SELECT * FROM recetas WHERE id = ${id}`;
   if (!receta) notFound();
@@ -22,12 +27,14 @@ export default async function RecetaDetallePage({ params }: { params: Promise<Pa
             <p className="text-gray-500 mt-1">{receta.porciones} porciones</p>
           )}
         </div>
-        <Link
-          href={`/recetas/${id}/editar`}
-          className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
-        >
-          Editar
-        </Link>
+        {esAdmin && (
+          <Link
+            href={`/recetas/${id}/editar`}
+            className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
+          >
+            Editar
+          </Link>
+        )}
       </div>
 
       {ingredientes.length > 0 && (

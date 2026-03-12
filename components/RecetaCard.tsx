@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+
+const ADMIN_EMAIL = 'acamacho@fullqueso.com';
 
 interface Props {
   id: number;
@@ -12,6 +15,8 @@ interface Props {
 
 export default function RecetaCard({ id, nombre, porciones, creado_en }: Props) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const esAdmin = session?.user?.email === ADMIN_EMAIL;
 
   const eliminar = async () => {
     if (!confirm(`¿Eliminar "${nombre}"?`)) return;
@@ -33,20 +38,22 @@ export default function RecetaCard({ id, nombre, porciones, creado_en }: Props) 
             {new Date(creado_en).toLocaleDateString('es-VE')}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <Link
-            href={`/recetas/${id}/editar`}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Editar
-          </Link>
-          <button
-            onClick={eliminar}
-            className="text-sm text-red-500 hover:text-red-700 font-medium"
-          >
-            Eliminar
-          </button>
-        </div>
+        {esAdmin && (
+          <div className="flex gap-2 shrink-0">
+            <Link
+              href={`/recetas/${id}/editar`}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Editar
+            </Link>
+            <button
+              onClick={eliminar}
+              className="text-sm text-red-500 hover:text-red-700 font-medium"
+            >
+              Eliminar
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

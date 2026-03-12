@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { auth } from '@/auth';
+
+const ADMIN_EMAIL = 'acamacho@fullqueso.com';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,6 +17,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (session?.user?.email !== ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Sin autorización' }, { status: 403 });
+  }
+
   const { id } = await params;
   const { nombre, porciones, ingredientes, pasos } = await req.json();
 
@@ -55,6 +63,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (session?.user?.email !== ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Sin autorización' }, { status: 403 });
+  }
+
   const { id } = await params;
 
   const [receta] = await sql`SELECT id FROM recetas WHERE id = ${id}`;

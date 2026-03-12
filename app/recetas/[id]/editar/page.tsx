@@ -1,10 +1,16 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { sql } from '@/lib/db';
 import RecetaForm from '@/components/RecetaForm';
+import { auth } from '@/auth';
+
+const ADMIN_EMAIL = 'acamacho@fullqueso.com';
 
 interface Params { id: string }
 
 export default async function EditarRecetaPage({ params }: { params: Promise<Params> }) {
+  const session = await auth();
+  if (session?.user?.email !== ADMIN_EMAIL) redirect('/');
+
   const { id } = await params;
 
   const [receta] = await sql`SELECT * FROM recetas WHERE id = ${id}`;
