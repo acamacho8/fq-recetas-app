@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import RecetaCard from '@/components/RecetaCard';
+import { CATEGORIAS } from '@/components/RecetaForm';
 
 interface Receta {
   id: number;
   nombre: string;
   porciones: number | null;
+  categoria: string | null;
   creado_en: string;
 }
 
 export default function HomePage() {
   const [recetas, setRecetas] = useState<Receta[]>([]);
   const [busqueda, setBusqueda] = useState('');
+  const [categoriaActiva, setCategoriaActiva] = useState('');
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -21,13 +24,15 @@ export default function HomePage() {
       .then(data => { setRecetas(data); setCargando(false); });
   }, []);
 
-  const filtradas = recetas.filter(r =>
-    r.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const filtradas = recetas.filter(r => {
+    const coincideBusqueda = r.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideCategoria = !categoriaActiva || r.categoria === categoriaActiva;
+    return coincideBusqueda && coincideCategoria;
+  });
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-4">
         <input
           className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
           placeholder="Buscar receta..."
@@ -43,13 +48,31 @@ export default function HomePage() {
         </a>
       </div>
 
+      <div className="flex gap-2 flex-wrap mb-6">
+        <button
+          onClick={() => setCategoriaActiva('')}
+          className={`text-sm px-3 py-1 rounded-full border transition-colors ${categoriaActiva === '' ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-600 border-gray-300 hover:border-orange-400'}`}
+        >
+          Todas
+        </button>
+        {CATEGORIAS.map(c => (
+          <button
+            key={c}
+            onClick={() => setCategoriaActiva(prev => prev === c ? '' : c)}
+            className={`text-sm px-3 py-1 rounded-full border transition-colors ${categoriaActiva === c ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-600 border-gray-300 hover:border-orange-400'}`}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+
       {cargando && (
         <p className="text-gray-500 text-center py-12">Cargando...</p>
       )}
 
       {!cargando && filtradas.length === 0 && (
         <div className="text-center py-16 text-gray-400">
-          {busqueda ? `No se encontraron recetas para "${busqueda}"` : 'No hay recetas aún. ¡Crea la primera!'}
+          {busqueda || categoriaActiva ? 'No se encontraron recetas.' : 'No hay recetas aún. ¡Crea la primera!'}
         </div>
       )}
 

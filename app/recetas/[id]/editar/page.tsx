@@ -23,6 +23,7 @@ export default async function EditarRecetaPage({ params }: { params: Promise<Par
     id: receta.id,
     nombre: receta.nombre,
     porciones: receta.porciones?.toString() ?? '',
+    categoria: receta.categoria ?? '',
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ingredientes: ingredientes.map((i: any) => ({
       nombre: i.nombre,

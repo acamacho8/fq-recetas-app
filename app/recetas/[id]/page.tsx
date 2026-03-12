@@ -22,7 +22,14 @@ export default async function RecetaDetallePage({ params }: { params: Promise<Pa
     <div>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{receta.nombre}</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold text-gray-900">{receta.nombre}</h1>
+            {receta.categoria && (
+              <span className="text-sm font-medium px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                {receta.categoria}
+              </span>
+            )}
+          </div>
           {receta.porciones && (
             <p className="text-gray-500 mt-1">{receta.porciones} porciones</p>
           )}

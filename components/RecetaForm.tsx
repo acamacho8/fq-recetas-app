@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import IngredientesEditor, { Ingrediente } from './IngredientesEditor';
 import PasosEditor, { Paso } from './PasosEditor';
 
+export const CATEGORIAS = ['Bebidas', 'Helados', 'Churros', 'Topping', 'Otras'];
+
 interface Props {
   inicial?: {
     id?: number;
     nombre: string;
     porciones: string;
+    categoria: string;
     ingredientes: Ingrediente[];
     pasos: Paso[];
   };
@@ -19,6 +22,7 @@ export default function RecetaForm({ inicial }: Props) {
   const router = useRouter();
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
   const [porciones, setPorciones] = useState(inicial?.porciones ?? '');
+  const [categoria, setCategoria] = useState(inicial?.categoria ?? '');
   const [ingredientes, setIngredientes] = useState<Ingrediente[]>(inicial?.ingredientes ?? []);
   const [pasos, setPasos] = useState<Paso[]>(inicial?.pasos ?? []);
   const [guardando, setGuardando] = useState(false);
@@ -38,7 +42,7 @@ export default function RecetaForm({ inicial }: Props) {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, porciones: porciones ? Number(porciones) : null, ingredientes, pasos }),
+      body: JSON.stringify({ nombre, porciones: porciones ? Number(porciones) : null, categoria: categoria || null, ingredientes, pasos }),
     });
 
     if (!res.ok) {
@@ -86,6 +90,20 @@ export default function RecetaForm({ inicial }: Props) {
             min={1}
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+        <select
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+          value={categoria}
+          onChange={e => setCategoria(e.target.value)}
+        >
+          <option value="">Sin categoría</option>
+          {CATEGORIAS.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
       </div>
 
       <div>
