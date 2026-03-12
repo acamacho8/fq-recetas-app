@@ -1,0 +1,53 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+interface Props {
+  id: number;
+  nombre: string;
+  porciones: number | null;
+  creado_en: string;
+}
+
+export default function RecetaCard({ id, nombre, porciones, creado_en }: Props) {
+  const router = useRouter();
+
+  const eliminar = async () => {
+    if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+    await fetch(`/api/recetas/${id}`, { method: 'DELETE' });
+    router.refresh();
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <Link href={`/recetas/${id}`} className="text-lg font-semibold text-gray-900 hover:text-orange-600">
+            {nombre}
+          </Link>
+          {porciones && (
+            <p className="text-sm text-gray-500 mt-0.5">{porciones} porciones</p>
+          )}
+          <p className="text-xs text-gray-400 mt-1">
+            {new Date(creado_en).toLocaleDateString('es-VE')}
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Link
+            href={`/recetas/${id}/editar`}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Editar
+          </Link>
+          <button
+            onClick={eliminar}
+            className="text-sm text-red-500 hover:text-red-700 font-medium"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

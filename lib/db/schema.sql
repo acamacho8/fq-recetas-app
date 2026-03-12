@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS recetas (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  porciones INTEGER,
+  creado_en TIMESTAMP DEFAULT NOW(),
+  actualizado_en TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS ingredientes (
+  id SERIAL PRIMARY KEY,
+  receta_id INTEGER REFERENCES recetas(id) ON DELETE CASCADE,
+  nombre VARCHAR(255) NOT NULL,
+  cantidad DECIMAL(10,2),
+  unidad VARCHAR(50)
+);
+
+CREATE TABLE IF NOT EXISTS pasos (
+  id SERIAL PRIMARY KEY,
+  receta_id INTEGER REFERENCES recetas(id) ON DELETE CASCADE,
+  orden INTEGER NOT NULL,
+  descripcion TEXT NOT NULL
+);
