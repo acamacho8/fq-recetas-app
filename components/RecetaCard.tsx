@@ -19,10 +19,11 @@ interface Props {
   nombre: string;
   porciones: number | null;
   categoria: string | null;
+  tipo: string | null;
   creado_en: string;
 }
 
-export default function RecetaCard({ id, nombre, porciones, categoria, creado_en }: Props) {
+export default function RecetaCard({ id, nombre, porciones, categoria, tipo, creado_en }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const esAdmin = session?.user?.email === ADMIN_EMAIL;
@@ -41,6 +42,11 @@ export default function RecetaCard({ id, nombre, porciones, categoria, creado_en
             <Link href={`/recetas/${id}`} className="text-lg font-semibold text-gray-900 hover:text-orange-600">
               {nombre}
             </Link>
+            {tipo && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-800 text-white">
+                {tipo}
+              </span>
+            )}
             {categoria && (
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CATEGORIA_COLORES[categoria] ?? 'bg-gray-100 text-gray-600'}`}>
                 {categoria}

@@ -2,19 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import RecetaCard from '@/components/RecetaCard';
-import { CATEGORIAS } from '@/components/RecetaForm';
+import { CATEGORIAS, TIPOS } from '@/components/RecetaForm';
 
 interface Receta {
   id: number;
   nombre: string;
   porciones: number | null;
   categoria: string | null;
+  tipo: string | null;
   creado_en: string;
 }
 
 export default function HomePage() {
   const [recetas, setRecetas] = useState<Receta[]>([]);
   const [busqueda, setBusqueda] = useState('');
+  const [tipoActivo, setTipoActivo] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('');
   const [cargando, setCargando] = useState(true);
 
@@ -26,8 +28,9 @@ export default function HomePage() {
 
   const filtradas = recetas.filter(r => {
     const coincideBusqueda = r.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideTipo = !tipoActivo || r.tipo === tipoActivo;
     const coincideCategoria = !categoriaActiva || r.categoria === categoriaActiva;
-    return coincideBusqueda && coincideCategoria;
+    return coincideBusqueda && coincideTipo && coincideCategoria;
   });
 
   return (
@@ -46,6 +49,18 @@ export default function HomePage() {
         >
           Descargar PDF
         </a>
+      </div>
+
+      <div className="flex gap-2 flex-wrap mb-3">
+        {TIPOS.map(t => (
+          <button
+            key={t}
+            onClick={() => setTipoActivo(prev => prev === t ? '' : t)}
+            className={`text-sm px-3 py-1 rounded-full border transition-colors ${tipoActivo === t ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'}`}
+          >
+            {t}
+          </button>
+        ))}
       </div>
 
       <div className="flex gap-2 flex-wrap mb-6">

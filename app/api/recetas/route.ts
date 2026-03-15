@@ -3,7 +3,7 @@ import { sql } from '@/lib/db';
 
 export async function GET() {
   const recetas = await sql`
-    SELECT id, nombre, porciones, categoria, creado_en
+    SELECT id, nombre, porciones, categoria, tipo, creado_en
     FROM recetas
     ORDER BY creado_en DESC
   `;
@@ -11,15 +11,15 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { nombre, porciones, categoria, ingredientes, pasos } = await req.json();
+  const { nombre, porciones, categoria, tipo, ingredientes, pasos } = await req.json();
 
   if (!nombre?.trim()) {
     return NextResponse.json({ error: 'Nombre es requerido' }, { status: 400 });
   }
 
   const [receta] = await sql`
-    INSERT INTO recetas (nombre, porciones, categoria)
-    VALUES (${nombre.trim()}, ${porciones || null}, ${categoria || null})
+    INSERT INTO recetas (nombre, porciones, categoria, tipo)
+    VALUES (${nombre.trim()}, ${porciones || null}, ${categoria || null}, ${tipo || null})
     RETURNING id
   `;
 

@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params;
-  const { nombre, porciones, categoria, ingredientes, pasos } = await req.json();
+  const { nombre, porciones, categoria, tipo, ingredientes, pasos } = await req.json();
 
   if (!nombre?.trim()) {
     return NextResponse.json({ error: 'Nombre es requerido' }, { status: 400 });
@@ -34,7 +34,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   await sql`
     UPDATE recetas
-    SET nombre = ${nombre.trim()}, porciones = ${porciones || null}, categoria = ${categoria || null}, actualizado_en = NOW()
+    SET nombre = ${nombre.trim()}, porciones = ${porciones || null}, categoria = ${categoria || null}, tipo = ${tipo || null}, actualizado_en = NOW()
     WHERE id = ${id}
   `;
 
